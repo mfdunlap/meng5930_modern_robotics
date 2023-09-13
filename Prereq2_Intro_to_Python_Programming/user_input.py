@@ -1,3 +1,10 @@
+############################################################
+# Maya Dunlap
+# MENG 5930 - Modern Robotics
+# Prerequisite 2: Introduction to Python Programming
+#                 with Emphasis on Robotics Applications
+############################################################
+
 #################### USER INPUT ####################
 print("Hi! My name is CMPTR1 and I'm trying to learn more about you.")                  # Example: Use the input function to get information about a user
 name = input("What is your name: ")                                                         # User's name

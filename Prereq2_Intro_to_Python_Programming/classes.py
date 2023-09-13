@@ -1,3 +1,10 @@
+############################################################
+# Maya Dunlap
+# MENG 5930 - Modern Robotics
+# Prerequisite 2: Introduction to Python Programming
+#                 with Emphasis on Robotics Applications
+############################################################
+
 #################### BASIC CLASSES ####################
 class Dog:                                                                          # DOG CLASS
     def __init__(self, name, breed, age):                                           # Function: Initialize instance of Dog class

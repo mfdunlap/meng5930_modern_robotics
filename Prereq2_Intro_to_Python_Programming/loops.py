@@ -1,3 +1,10 @@
+############################################################
+# Maya Dunlap
+# MENG 5930 - Modern Robotics
+# Prerequisite 2: Introduction to Python Programming
+#                 with Emphasis on Robotics Applications
+############################################################
+
 #################### WHILE LOOPS ####################
 import time                                                                                 # Import necessary libraries
 import random

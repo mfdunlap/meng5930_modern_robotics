@@ -1,3 +1,10 @@
+############################################################
+# Maya Dunlap
+# MENG 5930 - Modern Robotics
+# Prerequisite 2: Introduction to Python Programming
+#                 with Emphasis on Robotics Applications
+############################################################
+
 #################### IF-ELSE ####################
 def is_recyclable(material):                                            # Function: Check if material is recyclable
     if material.lower() in ["glass", "plastic", "aluminum", "paper"]:   # If material is recyclable:

@@ -1,3 +1,10 @@
+############################################################
+# Maya Dunlap
+# MENG 5930 - Modern Robotics
+# Prerequisite 2: Introduction to Python Programming
+#                 with Emphasis on Robotics Applications
+############################################################
+
 #################### TRY-EXCEPT ####################
 def find_color(color_name):                                                                         # Function: Find a color's position in the rainbow
     rainbow = ["red", "orange", "yellow", "green", "blue", "indigo", "purple"]                      # Initialize list of rainbow colors in order

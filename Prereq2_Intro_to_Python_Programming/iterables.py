@@ -1,3 +1,10 @@
+############################################################
+# Maya Dunlap
+# MENG 5930 - Modern Robotics
+# Prerequisite 2: Introduction to Python Programming
+#                 with Emphasis on Robotics Applications
+############################################################
+
 #################### LISTS ####################
 
 computer_parts = ["CPU", "GPU", "Motherboard", "Fan"]       # Initialize a list

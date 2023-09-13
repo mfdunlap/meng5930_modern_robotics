@@ -1,3 +1,10 @@
+############################################################
+# Maya Dunlap
+# MENG 5930 - Modern Robotics
+# Prerequisite 2: Introduction to Python Programming
+#                 with Emphasis on Robotics Applications
+############################################################
+
 #################### READING FILES ####################
 
 with open("Prereq2_Intro_to_Python_Programming/sensor_data.txt", "r") as file:  # Open listed file w/ read-only permission

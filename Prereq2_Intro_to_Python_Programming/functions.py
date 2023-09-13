@@ -1,3 +1,10 @@
+############################################################
+# Maya Dunlap
+# MENG 5930 - Modern Robotics
+# Prerequisite 2: Introduction to Python Programming
+#                 with Emphasis on Robotics Applications
+############################################################
+
 #################### WRITING FUNCTIONS ####################
 
 def multipy(num1, num2):                        # Function: Multiply two numbers
