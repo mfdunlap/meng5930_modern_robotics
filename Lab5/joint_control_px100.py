@@ -1,4 +1,10 @@
+############################################################
+# Maya Dunlap
+# MENG 5930 - Modern Robotics
+# Lab 5: Exploring DOFs and Joint Types in the PincherX 100
+#        Robot Arm plus DOFs Practice Questions
 # Copyright 2022 Trossen Robotics
+############################################################
 
 from interbotix_xs_modules.xs_robot.arm import InterbotixManipulatorXS
 from math import radians

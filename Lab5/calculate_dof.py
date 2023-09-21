@@ -1,3 +1,10 @@
+############################################################
+# Maya Dunlap
+# MENG 5930 - Modern Robotics
+# Lab 5: Exploring DOFs and Joint Types in the PincherX 100
+#        Robot Arm plus DOFs Practice Questions
+############################################################
+
 def main():
     # Initialize variables
     quit_prog = False
