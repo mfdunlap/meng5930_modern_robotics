@@ -18,17 +18,17 @@ t3 = m.radians(-120)
 rotx_t1 = np.array([[ 1,          0,           0],
                     [ 0, np.cos(t1), -np.sin(t1)],
                     [ 0, np.sin(t1),  np.cos(t1)]])
-print(rotx_t1)
+#print(rotx_t1)
 
 roty_t2 = np.array([[  np.cos(t2), 0, np.sin(t2)],
                     [           0, 1,          0],
                     [ -np.sin(t2), 0, np.cos(t2)]])
-print(roty_t2)
+#print(roty_t2)
 
 rotz_t3 = np.array([[ np.cos(t3), -np.sin(t3), 0],
                     [ np.sin(t3),  np.cos(t3), 0],
                     [          0,           0, 1],])
-print(rotz_t3)
+#print(rotz_t3)
 
 p = np.array([[ 1/m.sqrt(3)],
               [-1/m.sqrt(6)],
