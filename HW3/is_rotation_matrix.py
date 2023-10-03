@@ -2,21 +2,22 @@ import math as m
 import numpy as np
 
 def is_rotation_matrix(matrix):
-    mat_rounded = np.around(matrix, decimals=5)
-    return is_so3(mat_rounded)
+    return is_so3(matrix)
 
 def is_so3(matrix):
-    # Check 1: Matrix (R) is SQUARE
+    # Check 1: Matrix (R) is a 3x3 (for this particular case)
     mat_shape = matrix.shape
     if len(mat_shape) != 2:
         return False
-    elif mat_shape[0] != mat_shape[1]:
+    elif mat_shape[0] != 3 or mat_shape[1] != 3:
         return False
     
     # Check 2: RR^T = I
-    mat_mat_t = np.around(matrix @ np.transpose(matrix), decimals=5)
+    mat_eye = np.around(matrix @ np.transpose(matrix), decimals=5)
+    #print(mat_eye)
     eye = np.around(np.eye(mat_shape[0], dtype=float), decimals=5)
-    if not np.array_equal(mat_mat_t, eye):
+    #print(eye)
+    if not np.array_equal(mat_eye, eye):
         return False
 
     # Check 3: det(R) = 1
@@ -27,25 +28,122 @@ def is_so3(matrix):
     return True
 
 if __name__ == "__main__":
-    m1 = np.array([[ 1, 0],
+    ans = list()
+    # Should return False (Ex. 1-6)
+    mat = np.array([[1]])
+    ans.append(is_rotation_matrix(mat))
+
+    mat = np.array([[ 1, 0],
                    [ 0, 1]])
-    print(f"Matrix 1: {is_rotation_matrix(m1)}")
+    ans.append(is_rotation_matrix(mat))
 
-    m2 = np.array([[ 1, 0, 0],
-                   [ 0, 1, 0],
-                   [ 0, 0, 1]])
-    print(f"Matrix 2: {is_rotation_matrix(m2)}")
+    mat = np.array([[1, 2]])
+    ans.append(is_rotation_matrix(mat))
 
-    m3 = np.array([[ 2, 0, 0],
-                   [ 0, 1, 0],
-                   [ 0, 0, 1]])
-    print(f"Matrix 3: {is_rotation_matrix(m3)}")
+    mat = np.array([[ 2, 0, 0],
+                    [ 0, 1, 0],
+                    [ 0, 0, 1]])
+    ans.append(is_rotation_matrix(mat))
 
-    t1 = m.radians(40)
-    m4 = np.array([[ 1,          0,           0],
+    mat = np.array([[     2,     -1, 17],
+                    [ 0.667,    200, 145],
+                    [ -0.84, 0.9084, -1001]])
+    ans.append(is_rotation_matrix(mat))
+
+    mat = np.array([[    0.5, 0.765, 0.171],
+                    [  0.204, 0.200, 0.145],
+                    [ -0.121, 0.342, -0.325]])
+    ans.append(is_rotation_matrix(mat))
+
+    # Should return True (Ex. 7-20)
+    t = m.radians(40)
+    mat = np.array([[ 1,          0,           0],
+                    [ 0, np.cos(t), -np.sin(t)],
+                    [ 0, np.sin(t),  np.cos(t)]])
+    ans.append(is_rotation_matrix(mat))
+
+    mat = np.array([[ np.cos(t), -np.sin(t), 0],
+                    [ np.sin(t),  np.cos(t), 0],
+                    [         0,          0, 1]])
+    ans.append(is_rotation_matrix(mat))
+
+    mat = np.array([[  np.cos(t), 0, np.sin(t)],
+                    [          0, 1,         0],
+                    [ -np.sin(t), 0, np.cos(t)]])
+    ans.append(is_rotation_matrix(mat))
+
+    t = m.radians(163)
+    mat = np.array([[ 1,          0,           0],
+                    [ 0, np.cos(t), -np.sin(t)],
+                    [ 0, np.sin(t),  np.cos(t)]])
+    ans.append(is_rotation_matrix(mat))
+
+    mat = np.array([[ np.cos(t), -np.sin(t), 0],
+                    [ np.sin(t),  np.cos(t), 0],
+                    [         0,          0, 1]])
+    ans.append(is_rotation_matrix(mat))
+
+    mat = np.array([[  np.cos(t), 0, np.sin(t)],
+                    [          0, 1,         0],
+                    [ -np.sin(t), 0, np.cos(t)]])
+    ans.append(is_rotation_matrix(mat))
+
+    t = m.radians(-15)
+    mat = np.array([[ 1,          0,           0],
+                   [ 0, np.cos(t), -np.sin(t)],
+                   [ 0, np.sin(t),  np.cos(t)]])
+    ans.append(is_rotation_matrix(mat))
+
+    mat = np.array([[ np.cos(t), -np.sin(t), 0],
+                    [ np.sin(t),  np.cos(t), 0],
+                    [         0,          0, 1]])
+    ans.append(is_rotation_matrix(mat))
+
+    mat = np.array([[  np.cos(t), 0, np.sin(t)],
+                    [          0, 1,         0],
+                    [ -np.sin(t), 0, np.cos(t)]])
+    ans.append(is_rotation_matrix(mat))
+
+    t = m.radians(-111)
+    mat = np.array([[ 1,          0,           0],
+                    [ 0, np.cos(t), -np.sin(t)],
+                    [ 0, np.sin(t),  np.cos(t)]])
+    ans.append(is_rotation_matrix(mat))
+
+    mat = np.array([[ np.cos(t), -np.sin(t), 0],
+                    [ np.sin(t),  np.cos(t), 0],
+                    [         0,          0, 1]])
+    ans.append(is_rotation_matrix(mat))
+
+    mat = np.array([[  np.cos(t), 0, np.sin(t)],
+                    [          0, 1,         0],
+                    [ -np.sin(t), 0, np.cos(t)]])
+    ans.append(is_rotation_matrix(mat))
+
+    t1 = m.radians(302)
+    t2 = m.radians(30)
+    t3 = m.radians(51)
+    m1 = np.array([[ 1,          0,           0],
                    [ 0, np.cos(t1), -np.sin(t1)],
                    [ 0, np.sin(t1),  np.cos(t1)]])
-    print(f"Matrix 4: {is_rotation_matrix(m4)}")
+    m2 = np.array([[ np.cos(t2), -np.sin(t2), 0],
+                   [ np.sin(t2),  np.cos(t2), 0],
+                   [          0,           0, 1]])
+    m3 = np.array([[  np.cos(t3), 0, np.sin(t3)],
+                   [           0, 1,          0],
+                   [ -np.sin(t3), 0, np.cos(t3)]])
+    mat = m1 @ m2 @ m3
+    ans.append(is_rotation_matrix(mat))
 
-    m5 = np.array([[1, 2]])
-    print(f"Matrix 5: {is_rotation_matrix(m5)}")
+    mat = np.array([[ 1, 0, 0],
+                    [ 0, 1, 0],
+                    [ 0, 0, 1]])
+    ans.append(is_rotation_matrix(mat))
+
+    mat = np.array([[  0, -1, 0],
+                    [  0,  0, 1],
+                    [ -1,  0, 0]])
+    ans.append(is_rotation_matrix(mat))
+
+    for i, answer in enumerate(ans):
+        print(f"Matrix {i:>2}: {answer}")
