@@ -30,10 +30,7 @@ rot_y_theta4 = np.array([[  np.cos(theta_4), 0, np.sin(theta_4)],
 
 eye = np.eye(3)
 
-rot_0_2 = np.matmul(rot_z_theta1, rot_y_theta2)
-rot_0_3 = np.matmul(rot_0_2, rot_y_theta3)
-rot_0_4 = np.matmul(rot_0_3, rot_y_theta4)
-rot_0_5 = np.matmul(rot_0_4, eye)
+rot_0_5 = rot_z_theta1 @ rot_y_theta2 @ rot_y_theta3 @ rot_y_theta4 @ eye
 
 print(rot_0_5)
 
