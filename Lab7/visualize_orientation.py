@@ -1,3 +1,12 @@
+############################################################
+# Maya Dunlap
+# MENG 5930 - Modern Robotics
+# Lab 7: Tool Orientation of PincherX 100 Robot Arm Using
+#        Exponential Coordinates and Euler Angles Exercise
+#        Question
+# Copyright 2022 Trossen Robotics
+############################################################
+
 import numpy as np
 import math as m
 import matplotlib.pyplot as plt
