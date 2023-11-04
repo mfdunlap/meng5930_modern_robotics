@@ -48,6 +48,12 @@ if __name__ == "__main__":
     t2 = 0.0
     t3 = -np.pi/2
     t4 = np.pi/2
+
+    # t1 = np.deg2rad(50.0)
+    # t2 = np.deg2rad(-15.0)
+    # t3 = np.deg2rad(21.0)
+    # t4 = np.deg2rad(70.0)
+
     q  = [t1, t2, t3, t4]
     H1 = 89.45
     H2 = 100
