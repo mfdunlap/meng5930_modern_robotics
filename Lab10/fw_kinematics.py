@@ -28,6 +28,7 @@ def poe(q, a, rot, joint_type):
         elif joint_type[j] == "P":
             Sv = a[j]
         
+        print("Sv:", Sv)
         lin_vec_i = ((np.eye(3) * q[j]) + ((1 - np.cos(q[j])) * rot_i) + ((q[j] - np.sin(q[j])) * (rot_i @ rot_i))) @ Sv
         trans_mat_i = np.column_stack([rot_mat_i, lin_vec_i.T])
         trans_mat_i = np.vstack((trans_mat_i, np.array([0, 0, 0, 1])))
