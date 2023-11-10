@@ -1,0 +1,24 @@
+groups:
+  arm:
+    operating_mode: velocity
+    profile_type: time
+    profile_velocity: 2000
+    profile_acceleration: 300
+    torque_enable: true
+
+singles:
+  waist:
+    operating_mode: velocity
+    torque_enable: true
+  shoulder:
+    operating_mode: velocity
+    torque_enable: true
+  elbow:
+    operating_mode: velocity
+    torque_enable: true
+  wrist_angle:
+    operating_mode: velocity
+    torque_enable: true
+  gripper:
+    operating_mode: pwm
+    torque_enable: true
