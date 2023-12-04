@@ -25,19 +25,8 @@ def extract_axis_angle_from_matrix(R):
 if __name__ == "__main__":
     # Test the function
     R = np.array([
-        [0.8660254, -0.5, 0],
-        [0.5, 0.8660254, 0],
-        [0, 0, 1]
-    ])
-
-    omega_hat, theta = extract_axis_angle_from_matrix(R)
-    print("The rotation axis (omega_hat) is:", omega_hat)
-    print("The rotation amount (theta) is:", theta)
-
-    # Test the function
-    R = np.array([
-        [0,  0, 1],
-        [1,  0, 0],
+        [-1, 0, 0],
+        [0, 0, -1],
         [0, -1, 0]
     ])
 
@@ -45,24 +34,46 @@ if __name__ == "__main__":
     print("The rotation axis (omega_hat) is:", omega_hat)
     print("The rotation amount (theta) is:", theta)
 
-    # Test the function
-    R = np.array([
-        [0, -1, 0],
-        [1,  0, 0],
-        [0,  0, 1]
-    ])
+    # # Test the function
+    # R = np.array([
+    #     [0.8660254, -0.5, 0],
+    #     [0.5, 0.8660254, 0],
+    #     [0, 0, 1]
+    # ])
 
-    omega_hat, theta = extract_axis_angle_from_matrix(R)
-    print("The rotation axis (omega_hat) is:", omega_hat)
-    print("The rotation amount (theta) is:", theta)
+    # omega_hat, theta = extract_axis_angle_from_matrix(R)
+    # print("The rotation axis (omega_hat) is:", omega_hat)
+    # print("The rotation amount (theta) is:", theta)
 
-    # Test the function
-    R = np.array([
-        [1, 0, 0],
-        [0, 1, 0],
-        [0, 0, 1]
-    ])
+    # # Test the function
+    # R = np.array([
+    #     [0,  0, 1],
+    #     [1,  0, 0],
+    #     [0, -1, 0]
+    # ])
 
-    omega_hat, theta = extract_axis_angle_from_matrix(R)
-    print("The rotation axis (omega_hat) is:", omega_hat)
-    print("The rotation amount (theta) is:", theta)
+    # omega_hat, theta = extract_axis_angle_from_matrix(R)
+    # print("The rotation axis (omega_hat) is:", omega_hat)
+    # print("The rotation amount (theta) is:", theta)
+
+    # # Test the function
+    # R = np.array([
+    #     [0, -1, 0],
+    #     [1,  0, 0],
+    #     [0,  0, 1]
+    # ])
+
+    # omega_hat, theta = extract_axis_angle_from_matrix(R)
+    # print("The rotation axis (omega_hat) is:", omega_hat)
+    # print("The rotation amount (theta) is:", theta)
+
+    # # Test the function
+    # R = np.array([
+    #     [1, 0, 0],
+    #     [0, 1, 0],
+    #     [0, 0, 1]
+    # ])
+
+    # omega_hat, theta = extract_axis_angle_from_matrix(R)
+    # print("The rotation axis (omega_hat) is:", omega_hat)
+    # print("The rotation amount (theta) is:", theta)

@@ -6,7 +6,7 @@
 ############################################################
 
 import numpy as np
-np.set_printoptions(suppress=True)
+np.set_printoptions(precision=3, suppress=True)
 
 def poe(q, a, rot, joint_type):
     T = np.eye(4)
@@ -28,7 +28,7 @@ def poe(q, a, rot, joint_type):
         elif joint_type[j] == "P":
             Sv = a[j]
         
-        print("Sv:", Sv)
+        #print("Sv:", Sv)
         lin_vec_i = ((np.eye(3) * q[j]) + ((1 - np.cos(q[j])) * rot_i) + ((q[j] - np.sin(q[j])) * (rot_i @ rot_i))) @ Sv
         trans_mat_i = np.column_stack([rot_mat_i, lin_vec_i.T])
         trans_mat_i = np.vstack((trans_mat_i, np.array([0, 0, 0, 1])))
@@ -45,36 +45,31 @@ def fk_poe(q, a, rot, joint_type, M):
     return trans_mat, R, p
 
 if __name__ == "__main__":
-    t1 = 0.0
-    t2 = 0.0
-    t3 = -np.pi/2
-    t4 = np.pi/2
+    t1 = np.deg2rad(-39)
+    t2 = np.deg2rad(-31)
+    t3 = np.deg2rad(-41)
+    t4 = np.deg2rad(180)
+    t5 = np.deg2rad(-55)
+    t6 = np.deg2rad(85)
+    q  = [t1, t2, t3, t4, t5, t6]
 
-    # t1 = np.deg2rad(50.0)
-    # t2 = np.deg2rad(-15.0)
-    # t3 = np.deg2rad(21.0)
-    # t4 = np.deg2rad(70.0)
-
-    q  = [t1, t2, t3, t4]
-    H1 = 89.45
-    H2 = 100
-    L1 = 35
-    L2 = 100
-    L3 = (86.05 + 129.15)/2
-
-    a   = np.array([[    0, 0,     0],
-                    [    0, 0,    H1],
-                    [   L1, 0, H1+H2],
-                    [L1+L2, 0, H1+H2]])
-    rot = np.array([[0, 0, 1],
-                    [0, 1, 0],
-                    [0, 1, 0],
-                    [0, 1, 0]])
-    jt  = ["R", "R", "R", "R"]
-    M   = np.array([[1, 0, 0, L1+L2+L3],
-                    [0, 1, 0,        0],
-                    [0, 0, 1,    H1+H2],
-                    [0, 0, 0,        1]])
+    a   = np.array([[ 0, 0,      0],
+                    [ 0, 0,  284.8],
+                    [ 0, 0,  694.8],
+                    [ 0, 1,      0],
+                    [ 0, 0, 1009.1],
+                    [ 0, 1,      0]])
+    rot = np.array([[0,  0,  1],
+                    [0,  1,  0],
+                    [0, -1,  0],
+                    [0,  0, -1],
+                    [0, -1,  0],
+                    [0,  0, -1]])
+    jt  = ["R", "R", "R", "R", "R", "R"]
+    M   = np.array([[-1, 0, 0,      0],
+                    [0, -1, 0,      1],
+                    [0, 0,  1, 1176.5],
+                    [0, 0,  0,      1]])
     
     ans = fk_poe(q, a, rot, jt, M)
     print("Transformation Matrix:")
