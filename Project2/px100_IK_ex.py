@@ -18,7 +18,7 @@ class ourAPI:
         self.M = np.array([[1, 0, 0,  0.2426],
                            [0, 1, 0,       0],
                            [0, 0, 1, 0.18945],
-                           [0, 0, 0,       0]]) # End-effector M matrix
+                           [0, 0, 0,       1]]) # End-effector M matrix
         
     def screw_axis_to_transformation_matrix(self, screw_axis, angle):
         """
@@ -37,7 +37,7 @@ class ourAPI:
 
         # Extract rotational and translational components from the screw axis
         Sw = screw_axis[:3]
-        Sv = screw_axis[4:]
+        Sv = screw_axis[-3:]
 
         # Matrix form of the screw axis
         screw_matrix = np.zeros((4, 4))
@@ -67,13 +67,13 @@ class ourAPI:
         w = np.array([[twist_matrix[2,1], twist_matrix[0,2], twist_matrix[1,0]]])
         v = np.array([twist_matrix[:3,-1]])
 
-        return np.concatenate((w, v))
+        return np.concatenate((w, v), axis=None)
     
     def body_jacobian(self, angles):
         # Calculate the space jacobian
         J = np.array([[0.0,         -np.sin(angles[0]),                                                   0.0,                           0.0],
                       [0.0,          np.cos(angles[0]),                                                   1.0,                           1.0],
-                      [1.0,                                                                               0.0,                           0.0],
+                      [1.0,                        0.0,                                                   0.0,                           0.0],
                       [0.0, -0.08945*np.cos(angles[0]), 0.035*np.sin(angles[1])-0.1*np.cos(angles[1])-0.08945, 0.1*np.sin(angles[2])-0.18945],
                       [0.0, -0.08945*np.sin(angles[0]),                                                   0.0,                           0.0],
                       [0.0,                        0.0,         0.035*np.cos(angles[1])+0.1*np.sin(angles[1]),   0.1*np.cos(angles[2])+0.035]])
@@ -83,9 +83,9 @@ class ourAPI:
         Tbs     = np.linalg.inv(Tsb)
         R       = Tbs[:3, :3]
         p       = Tbs[:3, -1]
-        p_brack = np.array([[     0, -p[2,0],  p[1, 0]],
-                           [ p[2,0],       0, -p[0, 0]],
-                           [-p[1,0],  p[0,0],        0]])
+        p_brack = np.array([[   0, -p[2],  p[1]],
+                           [ p[2],     0, -p[0]],
+                           [-p[1],  p[0],     0]])
         
         adj_Tbs_top = np.hstack((R, np.zeros((3, 3))))
         adj_Tbs_bottom = np.hstack((np.dot(p_brack, R), R))
@@ -131,17 +131,17 @@ class ourAPI:
         h       = wz - self.L1
         c       = np.sqrt(r**2 + h**2)
         beta    = np.arctan2(self.Lm, self.L2)
-        epsi    = np.pi/2 - beta
+        psi     = np.pi/2 - beta
         Lr      = np.sqrt(self.Lm**2 + self.L2**2)
         phi     = np.arccos((c**2-self.L3**2-Lr**2)/(-2*Lr*self.L3))
         gamma   = np.arctan2(h,r)
         alpha   = np.arccos((self.L3**2-Lr**2-c**2)/(-2*Lr*c))
-        theta_a = np.arctan2(np.sqrt(ax**2 + ay**2, az))
+        theta_a = np.arctan2(np.sqrt(ax**2 + ay**2), az)
 
         # Get corresponding joint angles using geometry (elbow-up solution)
         q1 =  np.arctan2(Yt, Xt)                    # Waist angle
         q2 =  np.pi/2 - beta - alpha - gamma        # Shoulder angle
-        q3 =  pi - epsi - phi                       # Elbow angle
+        q3 =  np.pi - psi - phi                     # Elbow angle
         q4 =  theta_a - q2 - q3 - np.pi/2           # Wrist angle
 
         # Return angles
@@ -156,8 +156,10 @@ class ourAPI:
             Tsb = self.fk_poe(InitGuess)
 
             # Compute the body twist
-            matrix_Vb = logm( np.linalg.inv(Tsb) @ Tsd)
+            matrix_Vb = logm(np.linalg.inv(Tsb) @ Tsd)
+            print(matrix_Vb)
             Vb = self.twist_vector_from_twist_matrix(matrix_Vb)     # use the helper function at the beginning to extract the vector
+            print(Vb)
 
             # Compute new angles
             Jb = self.body_jacobian(InitGuess)
@@ -173,14 +175,14 @@ class ourAPI:
 
 def main():
     # Determine the desired end-effector transform
-    Td_grasp = np.array([[,  ,  ,  ],
-                         [,  ,  ,  ],
-                         [,  ,  , ],
-                         [,  ,  ,  ]]) # Gripping location
-    Td_release = np.array([[,  ,  ,  ],
-                           [,  ,  ,  ],
-                           [,  ,  ,  ],
-                           [,  ,  ,  ]]) # Throwing location
+    Td_grasp = np.array([[1, 0, 0,  0],
+                         [0, 1, 0,  0],
+                         [0, 0, 1, 0.10],
+                         [0, 0, 0,  1]]) # Gripping location
+    Td_release = np.array([[1, 0, 0, 0.05],
+                           [0, 1, 0, 0.05],
+                           [0, 0, 1, 0.2],
+                           [0, 0, 0,  1]]) # Throwing location
 
     # Create experiment objects (use robot API + our custom API)
     bot = InterbotixManipulatorXS(
@@ -190,21 +192,21 @@ def main():
     )
     my_api = ourAPI()
 
-    # Start with home position
+    # Start with home positiongeom_IK
     bot.arm.go_to_home_pose()
 
     # toggle between the geometric method and the numerical method below
     # record the answers that you get in both cases. report your observations. 
 
     # Go to gripping position and grip
-    joint_positions = my_api.geom_IK(Td_grasp) # Geometric inverse kinematics
-    #joint_positions = my_api.num_IK(Td_grasp, np.array([0.0, 0.0, 0.0, 0.0])) # Numeric inverse kinematics
+    #joint_positions = my_api.geom_IK(Td_grasp) # Geometric inverse kinematics
+    joint_positions = my_api.num_IK(Td_grasp, np.array([0.0, 0.0, 0.0, 0.0])) # Numeric inverse kinematics
     bot.arm.set_joint_positions(joint_positions) # Set positions
     bot.gripper.grasp(2.0) # Grip
     
     # Go to throwing position and throw
-    joint_positions = my_api.geom_IK(Td_release) # Geometric inverse kinematics
-    #joint_positions = my_api.num_IK(Td_release, np.array([0.0, 0.0, 0.0, 0.0])) # Numeric inverse kinematics
+    #joint_positions = my_api.geom_IK(Td_release) # Geometric inverse kinematics
+    joint_positions = my_api.num_IK(Td_release, np.array([0.0, 0.0, 0.0, 0.0])) # Numeric inverse kinematics
     bot.arm.set_joint_positions(joint_positions) # Set positions
     bot.gripper.release(2.0) # Release
     

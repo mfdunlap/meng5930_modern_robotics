@@ -1,6 +1,6 @@
 #!/usr/bin/env python3 
  
-# Import  necessary libraries the  
+# Import  necessary libraries
 import rclpy                                                # ROS client library for Python
 from rclpy.node import Node                                 # rclpy's Node class
 from tf2_ros import TransformException                      # Base class to handle exceptions
@@ -37,13 +37,13 @@ class FrameListener(Node):
 
         # Create publishers
         # Joint angular velocity publishers (after editing the yaml file)
-        self.a_pub = self.create_publisher( JointGroupCommand, '/px100/commands/joint_group ', 1)
+        self.a_pub = self.create_publisher( JointGroupCommand, 'px100/commands/joint_group', 1)
 
         # Velocity publishers for robot joints (waist, shoulder, elbow, wrist)  
         self.publisher_vel = self.create_publisher( Twist, 'end_eff_vel', 1)
 
         # Velocity error publisher
-        self.publisher_vel_err = self.create_publisher( Twist, '/vel_err', 1)
+        self.publisher_vel_err = self.create_publisher( Twist, 'vel_err', 1)
 
         # Call on_timer function on a set interval
         timer_period = 0.1
@@ -54,21 +54,24 @@ class FrameListener(Node):
         self.homogeneous_matrix_old[3, 3] = 1.0                 # Past homogeneous matrix
         self.ti = self.get_clock().now().nanoseconds / 1e9      # Initial time
 
-        # Define your jacobian matrix which is dependent on joint positions (angles)
-        # all zero elements of the matrix should be calculated and entered in this matrix as a function of joint angles
-        self.J = np.array([[0.0,       -np.sin(self.angles[0]),                                                              0.0,                                 0.0],
-                           [0.0,        np.cos(self.angles[0]),                                                              1.0,                                 1.0],
-                           [1.0,                           0.0,                                                              0.0,                                 0.0],
-                           [0.0, -89.45*np.cos(self.angles[0]), 35.0*np.sin([self.angles[1]])-100.0*np.cos(self.angles[1])-89.45, 100.0*np.sin(self.angles[2])-189.45],
-                           [0.0, -89.45*np.sin(self.angles[0]),                                                              0.0,                                 0.0],
-                           [0.0,                           0.0,         35.0*np.cos(self.angles[1])+100.0*np.sin(self.angles[1]),   100.0*np.cos(self.angles[2])+35.0]]) # Iinitial jacobian
-        
+        # Create joint position variable
+        self.angles = [0.0, 0.0, 0.0, 0.0]
+
         # Create the subscriber
         self.subscription = self.create_subscription( JointState, 'px100/jointstates', self.listener_callback, 1)
         self.subscription # prevent unused variable warning
 
-        # Create joint position variable
-        self.angles = [0.0, 0.0, 0.0, 0.0]
+        # Define your jacobian matrix which is dependent on joint positions (angles)
+        # all zero elements of the matrix should be calculated and entered in this matrix as a function of joint angles
+        self.J = np.array([[0.0,         -np.sin(self.angles[0]),                                                             0.0,                                0.0],
+                           [0.0,          np.cos(self.angles[0]),                                                             1.0,                                1.0],
+                           [1.0,                             0.0,                                                             0.0,                                0.0],
+                           [0.0, -0.08945*np.cos(self.angles[0]), 0.035*np.sin(self.angles[1])-0.1*np.cos(self.angles[1])-0.08945, 0.1*np.sin(self.angles[2])-0.18945],
+                           [0.0, -0.08945*np.sin(self.angles[0]),                                                             0.0,                                0.0],
+                           [0.0,                             0.0,         0.035*np.cos(self.angles[1])+0.1*np.sin(self.angles[1]),   0.1*np.cos(self.angles[2])+0.035]]) # Iinitial jacobian
+        
+        # Counter for conductor iterations
+        self.counter = 0
 
 
     def on_timer(self):
@@ -123,30 +126,52 @@ class FrameListener(Node):
         self.publisher_vel.publish(vel_msg)
 
         # Publish velocity commands
-        t = trans.header.stamp.sec  # Time stamp in seconds
+        t = trans.header.stamp.sec + (trans.header.stamp.nanosec / 1e9)
         a_msg = JointGroupCommand() # Message type: JointGroupCommand
         a_msg.name = 'arm'
 
+        a_msg.cmd = [0.0, 0.0, 0.0, 0.0]
+        
         # Robot motion commands
-        if t-self.ti <= 1:      # Stretch the arm a bit
-            a_msg.cmd = [0.0, 1.0, -1.0, 0.0] # Initial velocity (rad/sec.)
-        elif t-self.ti > 1 and t-self.ti <= 3:      # Freeze
-            a_msg.cmd = [0.0, 0.0, 0.0, 0.0] # Initial velocity (rad/sec.)
-        elif t-self.ti > 3 and t-self.ti <= 10:     # Dance --> Feel free to design your own dance moves
-            a_msg.cmd = [0.3, 0.0, sin(2*pi*(self.get_clock().now().nanoseconds / 1e9)), 0.0] # Initial velocity (rad/sec.)
+        if t-self.ti <= 1:                              # Stretch the arm a bit
+            a_msg.cmd = [0.0, 1.0, -1.0, 0.0]
+        elif t-self.ti > 1 and t-self.ti <= 3:          # Freeze
+            a_msg.cmd = [0.0, 0.0, 0.0, 0.0]
+        elif t-self.ti > 3 and t-self.ti <= 4.165:      # Beat 1 ---> Move down
+            a_msg.cmd = [0.0, 0.0, 0.75, -0.6]
+        elif t-self.ti > 4.165 and t-self.ti <= 5.330:  # Beat 2 ---> Move up-right
+            a_msg.cmd = [-0.75, 0.0, -0.5, 0.0]
+        elif t-self.ti > 5.330 and t-self.ti <= 6.495:     # Beat 3 ---> Move left
+            a_msg.cmd = [1.5, 0.0, 0.0, 0.0]
+        elif t-self.ti > 6.495 and t-self.ti <= 7.660:     # Beat 4 ---> Move up-right
+            a_msg.cmd = [-0.75, 0.0, -0.5, 0.0]
         else:       # Freeze again
-            a_msg.cmd = [0.0, 0.0, 0.0, 0.0] # Initial velocity (rad/sec.)
+            if self.counter <= 500:
+                current_time = ((t-self.ti)-7.660)%4.660
+                if current_time <= 1.165:
+                    a_msg.cmd = [0.0, 0.0, 0.95, 0.0]
+                elif current_time <= 2.330:
+                    a_msg.cmd = [-0.75, 0.0, -0.5, 0.0]
+                elif current_time <= 3.495:
+                    a_msg.cmd = [1.5, 0.0, 0.0, 0.0]
+                else:
+                    a_msg.cmd = [-0.75, 0.0, -0.5, 0.0]
+                self.counter += 1
+            else:
+                a_msg.cmd = [0.0, 0.0, 0.0, 0.0]
+            
 
         # Publish velocity commands
         self.a_pub.publish(a_msg)
 
         # Compute twist using jacobian
-        self.J = np.array([[0.0,       -np.sin(self.angles[0]),                                                              0.0,                                 0.0],
-                           [0.0,        np.cos(self.angles[0]),                                                              1.0,                                 1.0],
-                           [1.0,                           0.0,                                                              0.0,                                 0.0],
-                           [0.0, -89.45*np.cos(self.angles[0]), 35.0*np.sin([self.angles[1]])-100.0*np.cos(self.angles[1])-89.45, 100.0*np.sin(self.angles[2])-189.45],
-                           [0.0, -89.45*np.sin(self.angles[0]),                                                              0.0,                                 0.0],
-                           [0.0,                           0.0,         35.0*np.cos(self.angles[1])+100.0*np.sin(self.angles[1]),   100.0*np.cos(self.angles[2])+35.0]]) 
+        self.J = np.array([[0.0,         -np.sin(self.angles[0]),                                                             0.0,                                0.0],
+                           [0.0,          np.cos(self.angles[0]),                                                             1.0,                                1.0],
+                           [1.0,                             0.0,                                                             0.0,                                0.0],
+                           [0.0, -0.08945*np.cos(self.angles[0]), 0.035*np.sin(self.angles[1])-0.1*np.cos(self.angles[1])-0.08945, 0.1*np.sin(self.angles[2])-0.18945],
+                           [0.0, -0.08945*np.sin(self.angles[0]),                                                             0.0,                                0.0],
+                           [0.0,                             0.0,         0.035*np.cos(self.angles[1])+0.1*np.sin(self.angles[1]),   0.1*np.cos(self.angles[2])+0.035]])
+        
         vel_from_jac = self.J @ np.array([[a_msg.cmd[0]],
                                           [a_msg.cmd[1]],
                                           [a_msg.cmd[2]],
@@ -154,12 +179,12 @@ class FrameListener(Node):
         
         # Publish the velocity error message
         vel_err_msg = Twist()
-        vel_err_msg.linear.x  = trans_vel[0] - vel_from_jac[0]
-        vel_err_msg.linear.y  = trans_vel[1] - vel_from_jac[1]
-        vel_err_msg.linear.z  = trans_vel[2] - vel_from_jac[2]
-        vel_err_msg.angular.x = ang_vel[0] - vel_from_jac[3]
-        vel_err_msg.angular.y = ang_vel[1] - vel_from_jac[4]
-        vel_err_msg.angular.z = ang_vel[2] - vel_from_jac[5]
+        vel_err_msg.linear.x  = trans_vel[0] - vel_from_jac[3][0]
+        vel_err_msg.linear.y  = trans_vel[1] - vel_from_jac[4][0]
+        vel_err_msg.linear.z  = trans_vel[2] - vel_from_jac[5][0]
+        vel_err_msg.angular.x = ang_vel[0] - vel_from_jac[0][0]
+        vel_err_msg.angular.y = ang_vel[1] - vel_from_jac[1][0]
+        vel_err_msg.angular.z = ang_vel[2] - vel_from_jac[2][0]
         self.publisher_vel_err.publish(vel_err_msg)
     
     def quaternion_to_rotation_matrix(self, q0, q1, q2, q3):
@@ -194,7 +219,7 @@ class FrameListener(Node):
 
 
 def main(args=None):
-    # Initialize the rclpy library
+    # Initialize the rclpy library100
     rclpy.init(args=args)
   
     # Create the node
