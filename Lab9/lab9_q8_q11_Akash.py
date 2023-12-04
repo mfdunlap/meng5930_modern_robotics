@@ -75,7 +75,7 @@ def to_homogeneous_coordinates(v):
 
 
 
-##########11##############
+##########11##############p_skew
 
 def adjoint_representation(T):
     """

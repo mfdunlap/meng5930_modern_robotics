@@ -35,16 +35,40 @@ class FrameListener(Node):
         self.tf_buffer = Buffer()
         self.tf_listener = TransformListener(self.tf_buffer, self)
 
-        # Create velocity publishers for robot joints (waist, shoulder, elbow, wrist)  
+        # Create publishers
+        # Joint angular velocity publishers (after editing the yaml file)
+        self.a_pub = self.create_publisher( JointGroupCommand, '/px100/commands/joint_group ', 1)
+
+        # Velocity publishers for robot joints (waist, shoulder, elbow, wrist)  
         self.publisher_vel = self.create_publisher( Twist, 'end_eff_vel', 1)
+
+        # Velocity error publisher
+        self.publisher_vel_err = self.create_publisher( Twist, '/vel_err', 1)
 
         # Call on_timer function on a set interval
         timer_period = 0.1
         self.timer = self.create_timer(timer_period, self.on_timer)
             
         # Past variables' initialization
-        self.homogeneous_matrix_old = np.zeros((4, 4)); self.homogeneous_matrix_old[3, 3] = 1.0     # Past homogeneous matrix
-        self.ti = self.get_clock().now().nanoseconds / 1e9                                          # Initial time
+        self.homogeneous_matrix_old = np.zeros((4, 4))
+        self.homogeneous_matrix_old[3, 3] = 1.0                 # Past homogeneous matrix
+        self.ti = self.get_clock().now().nanoseconds / 1e9      # Initial time
+
+        # Define your jacobian matrix which is dependent on joint positions (angles)
+        # all zero elements of the matrix should be calculated and entered in this matrix as a function of joint angles
+        self.J = np.array([[0.0,       -np.sin(self.angles[0]),                                                              0.0,                                 0.0],
+                           [0.0,        np.cos(self.angles[0]),                                                              1.0,                                 1.0],
+                           [1.0,                           0.0,                                                              0.0,                                 0.0],
+                           [0.0, -89.45*np.cos(self.angles[0]), 35.0*np.sin([self.angles[1]])-100.0*np.cos(self.angles[1])-89.45, 100.0*np.sin(self.angles[2])-189.45],
+                           [0.0, -89.45*np.sin(self.angles[0]),                                                              0.0,                                 0.0],
+                           [0.0,                           0.0,         35.0*np.cos(self.angles[1])+100.0*np.sin(self.angles[1]),   100.0*np.cos(self.angles[2])+35.0]]) # Iinitial jacobian
+        
+        # Create the subscriber
+        self.subscription = self.create_subscription( JointState, 'px100/jointstates', self.listener_callback, 1)
+        self.subscription # prevent unused variable warning
+
+        # Create joint position variable
+        self.angles = [0.0, 0.0, 0.0, 0.0]
 
 
     def on_timer(self):
@@ -96,7 +120,47 @@ class FrameListener(Node):
         vel_msg.angular.x = ang_vel[0]
         vel_msg.angular.y = ang_vel[1]
         vel_msg.angular.z = ang_vel[2]
-        self.publisher_vel.publish(vel_msg) 
+        self.publisher_vel.publish(vel_msg)
+
+        # Publish velocity commands
+        t = trans.header.stamp.sec  # Time stamp in seconds
+        a_msg = JointGroupCommand() # Message type: JointGroupCommand
+        a_msg.name = 'arm'
+
+        # Robot motion commands
+        if t-self.ti <= 1:      # Stretch the arm a bit
+            a_msg.cmd = [0.0, 1.0, -1.0, 0.0] # Initial velocity (rad/sec.)
+        elif t-self.ti > 1 and t-self.ti <= 3:      # Freeze
+            a_msg.cmd = [0.0, 0.0, 0.0, 0.0] # Initial velocity (rad/sec.)
+        elif t-self.ti > 3 and t-self.ti <= 10:     # Dance --> Feel free to design your own dance moves
+            a_msg.cmd = [0.3, 0.0, sin(2*pi*(self.get_clock().now().nanoseconds / 1e9)), 0.0] # Initial velocity (rad/sec.)
+        else:       # Freeze again
+            a_msg.cmd = [0.0, 0.0, 0.0, 0.0] # Initial velocity (rad/sec.)
+
+        # Publish velocity commands
+        self.a_pub.publish(a_msg)
+
+        # Compute twist using jacobian
+        self.J = np.array([[0.0,       -np.sin(self.angles[0]),                                                              0.0,                                 0.0],
+                           [0.0,        np.cos(self.angles[0]),                                                              1.0,                                 1.0],
+                           [1.0,                           0.0,                                                              0.0,                                 0.0],
+                           [0.0, -89.45*np.cos(self.angles[0]), 35.0*np.sin([self.angles[1]])-100.0*np.cos(self.angles[1])-89.45, 100.0*np.sin(self.angles[2])-189.45],
+                           [0.0, -89.45*np.sin(self.angles[0]),                                                              0.0,                                 0.0],
+                           [0.0,                           0.0,         35.0*np.cos(self.angles[1])+100.0*np.sin(self.angles[1]),   100.0*np.cos(self.angles[2])+35.0]]) 
+        vel_from_jac = self.J @ np.array([[a_msg.cmd[0]],
+                                          [a_msg.cmd[1]],
+                                          [a_msg.cmd[2]],
+                                          [a_msg.cmd[3]]])
+        
+        # Publish the velocity error message
+        vel_err_msg = Twist()
+        vel_err_msg.linear.x  = trans_vel[0] - vel_from_jac[0]
+        vel_err_msg.linear.y  = trans_vel[1] - vel_from_jac[1]
+        vel_err_msg.linear.z  = trans_vel[2] - vel_from_jac[2]
+        vel_err_msg.angular.x = ang_vel[0] - vel_from_jac[3]
+        vel_err_msg.angular.y = ang_vel[1] - vel_from_jac[4]
+        vel_err_msg.angular.z = ang_vel[2] - vel_from_jac[5]
+        self.publisher_vel_err.publish(vel_err_msg)
     
     def quaternion_to_rotation_matrix(self, q0, q1, q2, q3):
         """
@@ -120,6 +184,13 @@ class FrameListener(Node):
         homogeneous_matrix[:3, :3] = rotation_matrix
 
         return homogeneous_matrix
+    
+    def listener_callback(self, data):
+        """
+        Callback function.
+        """
+        # Display the message on the console
+        self.angles = [data.position[0], data.position[2], data.position[3], data.position[4]]
 
 
 def main(args=None):
