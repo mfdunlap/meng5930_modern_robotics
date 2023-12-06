@@ -139,8 +139,15 @@ class ourAPI:
 
         # Get corresponding joint angles using geometry (elbow-up solution)
         q1 =  np.arctan2(Yt, Xt)                    # Waist angle
-        q2 =  np.pi/2 - beta - alpha - gamma        # Shoulder angle
-        q3 =  np.pi - psi - phi                     # Elbow angle
+
+        try:                                        # ELBOW UP SOLUTION
+            q2 =  np.pi/2 - beta - alpha - gamma    # Shoulder angle
+            q3 =  np.pi - psi - phi                 # Elbow angle
+        
+        except:                                     # ELBOW DOWN SOLUTION
+            q2 =  np.pi/2 - (gamma - alpha + beta)  # Shoulder angle
+            q3 =  -np.pi + (phi - psi)              # Elbow angle
+
         q4 =  theta_a - q2 - q3 - np.pi/2           # Wrist angle
 
         # Return angles
@@ -165,8 +172,9 @@ class ourAPI:
             # Check if you're done and update initial guess
             if(np.linalg.norm(abs(NewGuess-InitGuess)) <= 0.1):
                 print("NEW GUESS:")
-                print(NewGuess)
-                return [NewGuess[0], NewGuess[1], NewGuess[2], NewGuess[3]] 
+                print(NewGuess % (2*np.pi))
+                print((NewGuess * 180/np.pi) % 360)
+                return [NewGuess[0], NewGuess[1], NewGuess[2], NewGuess[3]]
             else:
                 InitGuess = NewGuess
         print('Numerical solution failed!!')
@@ -178,53 +186,53 @@ class ourAPI:
         print(NewGuess)
 
 def main():
-    # Move robot to grasping position
+    # Rotate waist
     Td_1 = np.array([[ 0.0, 1.0, 0.0,     0.0],
                      [-1.0, 0.0, 0.0, -0.2426],
                      [ 0.0, 0.0, 1.0, 0.18945],
                      [ 0.0, 0.0, 0.0,     1.0]])
-    
-    Td_2 = np.array([[ 0.0, 1.0, 0.0,     0.5],
+
+    # Bend down to item
+    Td_2 = np.array([[ 0.0, 1.0, 0.0,    0.05],
                      [-1.0, 0.0, 0.0, -0.2426],
                      [ 0.0, 0.0, 1.0, 0.03945],
                      [ 0.0, 0.0, 0.0,     1.0]])
-    
-    # Lift item
-    Td_3 = np.array([[ 0.0, 1.0, 0.0,     0.6],
+
+    # Lift item up
+    Td_3 = np.array([[ 0.0, 1.0, 0.0,   -0.05],
                      [-1.0, 0.0, 0.0, -0.2426],
                      [ 0.0, 0.0, 1.0, 0.23945],
                      [ 0.0, 0.0, 0.0,     1.0]])
-    
-    
-    # Rotate item
-    Td_4 = np.array([[       0.0, 1.0,      -0.0,         0.0],
-                     [      -0.5, 0.0, 0.8660254, -0.03469746],
-                     [ 0.8660254, 0.0,       0.5,  0.34954776],
-                     [       0.0, 0.0,       0.0,         1.0]])
-    
-    # Put item down
-    Td_5 = np.array([[      0.5, -0.8660254, 0.0,     0.1213],
-                     [0.8660254,        0.5, 0.0, 0.21009776],
-                     [      0.0,        0.0, 1.0,    0.18945],
-                     [      0.0,        0.0, 0.0,        1.0]])
-    
-    Td_6 = np.array([[      0.5, -0.8660254, 0.0,     0.1813],
-                     [0.8660254,        0.5, 0.0, 0.21009776],
-                     [      0.0,        0.0, 1.0,    0.18945],
-                     [      0.0,        0.0, 0.0,        1.0]])
-    
-    Td_7 = np.array([[      0.5, -0.8660254, 0.0,     0.1813],
-                     [0.8660254,        0.5, 0.0, 0.21009776],
-                     [      0.0,        0.0, 1.0,    0.00945],
-                     [      0.0,        0.0, 0.0,        1.0]])
-    
-    # Move away from released item
-    Td_8 = np.array([[      0.5, -0.8660254, 0.0,     0.1813],
-                     [0.8660254,        0.5, 0.0, 0.21009776],
-                     [      0.0,        0.0, 1.0,    0.20945],
-                     [      0.0,        0.0, 0.0,        1.0]])
-    
 
+    # Bend elbow back
+    Td_4 = np.array([[      0.0, 1.0,       0.0,        0.0],
+                     [     -0.5, 0.0, 0.8660254,    -0.1388],
+                     [0.8660254, 0.0,       0.5, 0.36923687],
+                     [      0.0, 0.0,       0.0,        1.0]])
+
+    # Rotate waist
+    Td_5 = np.array([[     0.25, -0.8660254, -0.4330127,     0.0694],
+                     [0.4330127,        0.5,      -0.75, 0.12020433],
+                     [0.8660254,        0.0,        0.5, 0.36923687],
+                     [      0.0,        0.0,        0.0,        1.0]])
+
+    # Put elbow to netural position
+    Td_6 = np.array([[      0.5, -0.8660254, 0.0,     0.1213],
+                     [0.8660254,        0.5, 0.0, 0.21009776],
+                     [      0.0,        0.0, 1.0,    0.18945],
+                     [      0.0,        0.0, 0.0,        1.0]])
+
+    # Set item down
+    Td_7 = np.array([[ 0.49678593, -0.8660254, 0.05660161, 0.14959432],
+                     [ 0.86045847,        0.5, 0.09803686, 0.25910497],
+                     [-0.11320321,        0.0, 0.99357186, 0.11684392],
+                     [        0.0,        0.0,        0.0,        1.0]])
+
+    # Move away from item
+    Td_8 = np.array([[ 0.488148, -0.8660254, -0.10821981, 0.14296386],
+                     [0.84549714,       0.5,  -0.1874422, 0.24762066],
+                     [0.21643961,       0.0,  0.97629601, 0.19991652],
+                     [       0.0,       0.0,         0.0,        1.0]])
 
     # Create experiment objects (use robot API + our custom API)
     bot = InterbotixManipulatorXS(
@@ -255,12 +263,15 @@ def main():
         print(f"Finding position 1...")
         joint_positions = my_api.geom_IK(Td_1)
         bot.arm.set_joint_positions(joint_positions)
-        sleep(1)
+
+        # Open gripper
+        bot.gripper.release(2.0)
+        input()
 
         print(f"Finding position 2...")
         joint_positions = my_api.geom_IK(Td_2)
         bot.arm.set_joint_positions(joint_positions)
-        sleep(1)
+        input()
 
         # Grip item
         bot.gripper.set_pressure(0.75)
@@ -270,50 +281,52 @@ def main():
         print(f"Finding position 3...")
         joint_positions = my_api.geom_IK(Td_3)
         bot.arm.set_joint_positions(joint_positions)
-        sleep(1)
+        input()
 
         # Rotate item
-        print(f"Finding position 4...")
+        print(f"Finding position 5...")
         joint_positions = my_api.geom_IK(Td_4)
         bot.arm.set_joint_positions(joint_positions)
-        sleep(1)
-
-        # Lower item
-        print(f"Finding position 5...")
-        joint_positions = my_api.geom_IK(Td_5)
-        bot.arm.set_joint_positions(joint_positions)
-        sleep(1)
+        input()
 
         print(f"Finding position 6...")
+        joint_positions = my_api.geom_IK(Td_5)
+        bot.arm.set_joint_positions(joint_positions)
+        input()
+
+        # Set down item
+        print(f"Finding position 7...")
         joint_positions = my_api.geom_IK(Td_6)
         bot.arm.set_joint_positions(joint_positions)
-        sleep(1)
+        input()
 
-        print(f"Finding position 7...")
+        print(f"Finding position 8...")
         joint_positions = my_api.geom_IK(Td_7)
         bot.arm.set_joint_positions(joint_positions)
-        sleep(1)
+        input()
 
-        # Release item
         bot.gripper.release(2.0)
 
         # Move away from item
-        print(f"Finding position 8...")
+        print(f"Finding position 9...")
         joint_positions = my_api.geom_IK(Td_8)
         bot.arm.set_joint_positions(joint_positions)
-        sleep(1)
-    
+        input()
+
+        bot.gripper.grasp(2.0)
+
     else:
         # Move to grasp position
         print(f"Finding position 1...")
         joint_positions = my_api.num_IK(Td_1, np.array([0.0, 0.0, 0.0, 0.0]))
         bot.arm.set_joint_positions(joint_positions)
-        sleep(1)
+
+        # Open gripper
+        bot.gripper.release(2.0)        
 
         print(f"Finding position 2...")
         joint_positions = my_api.num_IK(Td_2, np.array([0.0, 0.0, 0.0, 0.0]))
         bot.arm.set_joint_positions(joint_positions)
-        sleep(1)
 
         # Grip item
         bot.gripper.set_pressure(0.75)
@@ -323,38 +336,35 @@ def main():
         print(f"Finding position 3...")
         joint_positions = my_api.num_IK(Td_3, np.array([0.0, 0.0, 0.0, 0.0]))
         bot.arm.set_joint_positions(joint_positions)
-        sleep(1)
 
         # Rotate item
         print(f"Finding position 4...")
         joint_positions = my_api.num_IK(Td_4, np.array([0.0, 0.0, 0.0, 0.0]))
         bot.arm.set_joint_positions(joint_positions)
-        sleep(1)
 
-        # Lower item
         print(f"Finding position 5...")
         joint_positions = my_api.num_IK(Td_5, np.array([0.0, 0.0, 0.0, 0.0]))
         bot.arm.set_joint_positions(joint_positions)
-        sleep(1)
 
+        # Set down item
         print(f"Finding position 6...")
         joint_positions = my_api.num_IK(Td_6, np.array([0.0, 0.0, 0.0, 0.0]))
         bot.arm.set_joint_positions(joint_positions)
-        sleep(1)
 
         print(f"Finding position 7...")
-        joint_positions = my_api.num_IK(Td_7, np.array([0.0, 0.0, 0.0, 0.0]))
+        joint_positions = my_api.num_IK(Td_7, np.array([np.pi/4, np.pi/6, 0.0, -np.pi/6]))
         bot.arm.set_joint_positions(joint_positions)
-        sleep(1)
 
         # Release item
         bot.gripper.release(2.0)
 
         # Move away from item
         print(f"Finding position 8...")
-        joint_positions = my_api.num_IK(Td_8, np.array([0.0, 0.0, 0.0, 0.0]))
+        joint_positions = my_api.num_IK(Td_8, np.array([np.pi/4, 0.0, -np.pi/6, 0.0]))
         bot.arm.set_joint_positions(joint_positions)
-        sleep(1)
+
+        # Close gripper
+        bot.gripper.grasp(2.0)
     
     # End mission
     bot.arm.go_to_home_pose()
