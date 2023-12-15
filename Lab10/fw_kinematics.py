@@ -50,10 +50,10 @@ if __name__ == "__main__":
     # t3 = 0.0
     # t4 = 0.0
 
-    t1 = np.deg2rad(-76)
-    t2 = np.deg2rad(-45)
-    t3 = np.deg2rad(-25)
-    t4 = np.deg2rad(60)
+    t1 = np.deg2rad(0)
+    t2 = np.deg2rad(0)
+    t3 = np.deg2rad(0)
+    t4 = np.deg2rad(30)
 
     q  = [t1, t2, t3, t4]
     H1 = 89.45/1000
